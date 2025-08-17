@@ -32,7 +32,7 @@ func TestServer_New_Run_Shutdown(t *testing.T) {
 	defer otlp.Close()
 
 	cfg := &config.Config{
-		RedisURL:          "redis://" + mr.Addr(),
+		RedisUrl:          "redis://" + mr.Addr(),
 		TelemetryEndpoint: endpoint,
 		Location:          "UTC",
 	}

@@ -14,7 +14,7 @@ type Server struct {
 }
 
 func New(cfg *config.Config) (*Server, error) {
-	rc, err := cache.New(cfg.RedisURL)
+	rc, err := cache.New(cfg.RedisUrl)
 	if err != nil {
 		return nil, err
 	}

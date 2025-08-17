@@ -19,17 +19,20 @@ type OTP struct {
 }
 
 type Sender struct {
-	APIURL string `env:"SENDER_API_URL,required"`
+	ApiUrl string `env:"SENDER_API_URL,required"`
 	User   string `env:"SENDER_API_USER,required"`
 	Pass   string `env:"SENDER_API_PASS,required"`
 	Name   string `env:"SENDER_API_NAME,required"`
 }
 
 type Config struct {
+	Env string `env:"ENV,required"`
+
 	// infra/runtime
-	Port     int    `env:"APP_PORT,required"`
-	AppCpus  string `env:"APP_CPUS,required"`
-	RedisURL string `env:"REDIS_URL,required"`
+	Port     			int    `env:"APP_PORT,required"`
+	AppCpus  			string `env:"APP_CPUS,required"`
+	RedisUrl 			string `env:"REDIS_URL,required"`
+	RedisUrlLocal string `env:"REDIS_URL_LOCAL,required"`
 
 	// app
 	SecretKeyBase     string `env:"SECRET_KEY_BASE,required"`
@@ -67,5 +70,16 @@ func Load() (*Config, error) {
 	if _, err := time.LoadLocation(c.Location); err != nil {
 		return nil, fmt.Errorf("invalid LOCATION %q: %w", c.Location, err)
 	}
+
+	c.RedisUrl = redisURL(&c)
 	return &c, nil
+}
+
+func redisURL(cfg *Config) string {
+	switch strings.ToLower(cfg.Env) {
+	case "production":
+		return cfg.RedisUrl
+	default:
+		return cfg.RedisUrlLocal
+	}
 }
