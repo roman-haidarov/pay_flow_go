@@ -11,11 +11,11 @@ x-app-base: &app-base
   working_dir: /app
   command: ["go", "run", "./cmd"]
   volumes:
-    - ../:/app
+    - .:/app
   restart: unless-stopped
   logging: *log-env
   env_file:
-    - ../.env
+    - .env
 
 services:
   app-direct:
