@@ -76,7 +76,7 @@ func Load() (*Config, error) {
 }
 
 func redisURL(cfg *Config) string {
-	switch cfg.Env {
+	switch strings.ToLower(cfg.Env) {
 	case "production":
 		return cfg.RedisUrl
 	default:
