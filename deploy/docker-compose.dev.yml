@@ -12,23 +12,24 @@ x-app-base: &app-base
   command: ["go", "run", "./cmd"]
   volumes:
     - ../:/app
-    - ../config.yml:/etc/pay-flow/config.yml:ro
-    - ../consent.yml:/consent.yml:ro
-  environment:
-    - PAY_FLOW_GO_CONFIG=/etc/pay-flow/config.yml
   restart: unless-stopped
   logging: *log-env
   env_file:
-    - .env
+    - ../.env
 
 services:
   app-direct:
     <<: *app-base
-    depends_on:
-      - redis
-      - jaeger
-    ports:
-      - "${APP_PORT:-8080}:8080"
+    depends_on: [redis, jaeger]
+    cpus: "${APP_CPUS:-0.90}"
+    mem_limit: "${APP_MEM:-512m}"
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+      - GOMEMLIMIT=${APP_GOMEMLIMIT:-430MiB}
+      - GOGC=${GOGC:-100}
 
   jaeger:
     image: jaegertracing/all-in-one:1.56
@@ -39,11 +40,12 @@ services:
       - "4318:4318"
     restart: unless-stopped
     logging: *log-env
+    cpus: "${JAEGER_CPUS:-0.50}"
+    mem_limit: "${JAEGER_MEM:-256m}"
 
   redis:
     image: redis:7-alpine
-    volumes:
-      - redis_data:/data
+    volumes: [redis_data:/data]
     environment:
       - REDIS_RAM_SIZE=${REDIS_RAM_SIZE:-256}
     command: >

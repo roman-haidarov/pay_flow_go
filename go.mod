@@ -4,12 +4,14 @@ go 1.25.0
 
 require (
 	github.com/alicebob/miniredis/v2 v2.35.0
+	github.com/caarlos0/env/v11 v11.3.1
+	github.com/joho/godotenv v1.5.1
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/rs/zerolog v1.34.0
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp v1.37.0
 	go.opentelemetry.io/otel/sdk v1.37.0
-	gopkg.in/yaml.v3 v3.0.1
+	go.uber.org/automaxprocs v1.6.0
 )
 
 require (
