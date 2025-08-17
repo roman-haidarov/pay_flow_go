@@ -1,0 +1,58 @@
+version: '3.8'
+
+x-logging: &log-env
+  driver: "${LOG_DRIVER:-local}"
+  options:
+    max-size: "${LOG_MAX_SIZE:-128m}"
+    max-file: "${LOG_MAX_FILES:-2}"
+
+x-app-base: &app-base
+  image: golang:${GO_VERSION:-1.25}
+  working_dir: /app
+  command: ["go", "run", "./cmd"]
+  volumes:
+    - ../:/app
+    - ../config.yml:/etc/pay-flow/config.yml:ro
+    - ../consent.yml:/consent.yml:ro
+  environment:
+    - PAY_FLOW_GO_CONFIG=/etc/pay-flow/config.yml
+  restart: unless-stopped
+  logging: *log-env
+  env_file:
+    - .env
+
+services:
+  app-direct:
+    <<: *app-base
+    depends_on:
+      - redis
+      - jaeger
+    ports:
+      - "${APP_PORT:-8080}:8080"
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.56
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"
+      - "4318:4318"
+    restart: unless-stopped
+    logging: *log-env
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    environment:
+      - REDIS_RAM_SIZE=${REDIS_RAM_SIZE:-256}
+    command: >
+      redis-server --appendonly yes
+                   --maxmemory ${REDIS_RAM_SIZE:-256}mb
+                   --maxmemory-policy allkeys-lru
+    logging: *log-env
+
+volumes:
+  redis_data:
+
+# http://localhost:16686 jaeger UI
