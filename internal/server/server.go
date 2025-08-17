@@ -2,25 +2,28 @@ package server
 
 import (
 	"context"
+	"pay_flow_go/internal/cache"
 	"pay_flow_go/internal/config"
-
 	"github.com/rs/zerolog/log"
 )
 
 type Server struct {
-	cfg     *config.Config
-	// db      db.DB
-	// api     *api.API
+	cfg *config.Config
+	ch  cache.Store
+	// api *api.API
 }
 
 func New(cfg *config.Config) (*Server, error) {
-	srv := &Server{
-		cfg: cfg,
-		// db:      db.New(cfg.DB),
-		// api:     api.NewAPI(db.New(cfg.DB), reviews.NewService(db.New(cfg.DB))),
+	rc, err := cache.New(cfg.RedisURL)
+	if err != nil {
+		return nil, err
 	}
 
-	return srv, nil
+	return &Server{
+		cfg: cfg,
+		ch:  rc,
+		// api: api.NewAPI(rc, reviews.NewService(rc)),
+	}, nil
 }
 
 func (s *Server) Run(ctx context.Context) error {
@@ -30,8 +33,7 @@ func (s *Server) Run(ctx context.Context) error {
 		return err
 	}
 	defer func() {
-		err = shutdown(ctx)
-		if err != nil {
+		if err := shutdown(ctx); err != nil {
 			log.Err(err).Msg("cannot shutdown OTel")
 		}
 	}()
@@ -41,5 +43,10 @@ func (s *Server) Run(ctx context.Context) error {
 }
 
 func (s *Server) Shutdown() {
+	if s.ch != nil {
+		if err := s.ch.Close(); err != nil {
+			log.Err(err).Msg("redis close failed")
+		}
+	}
 	log.Info().Msg("graceful server shutdown")
 }
