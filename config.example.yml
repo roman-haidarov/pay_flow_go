@@ -1,0 +1,27 @@
+secret_key_base: "f7b0ede90f4ec19e50d760e161307064683bda8433395c518bdf9c25ee90eb5775a6acb9e34b39482c0d43d1574306628b603c0e5bc302ff2a8b1ab464712f36"
+app_base_url: "http://localhost"
+app_base_path: "/api"
+port: 8080
+
+redis_url: "redis://redis:6379"
+with_geocoder: true
+location: "Asia/Almaty"
+
+log_level: 2
+telemetry_endpoint: "http://localhost:9090"
+
+ipinfo_token: "c0a36c01680a0a"
+
+otp:
+  api_credential: "xyzxyzxyzxyzxyz"
+  api_credential_test: "xyzxyzxyzxyzxyz"
+  api_salt: "xyzxyzxyzxyzxyz"
+  api_url: "https://demo-rubie.qanat.kz"
+  api_url_test: "https://demo-rubie.qanat.kz"
+  allowed_redirect_hosts: ["example.com","sub.partner.org","google.com","google.kz"]
+
+sender:
+  api_url: "http://example.com"
+  api_user: "user"
+  api_pass: "12347643"
+  api_name: "Example.kz"
