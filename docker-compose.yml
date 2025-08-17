@@ -1,4 +1,4 @@
-version: "3.8"
+version: '3.8'
 
 x-logging: &log-env
   driver: "${LOG_DRIVER:-local}"
@@ -6,10 +6,34 @@ x-logging: &log-env
     max-size: "${LOG_MAX_SIZE:-128m}"
     max-file: "${LOG_MAX_FILES:-2}"
 
+x-app-base: &app-base
+  image: golang:${GO_VERSION:-1.25}
+  working_dir: /app
+  command: ["go", "run", "./cmd"]
+  volumes:
+    - .:/app
+  restart: unless-stopped
+  logging: *log-env
+  env_file:
+    - .env
+
 services:
+  app:
+    <<: *app-base
+    depends_on: [redis, jaeger]
+    cpus: "${APP_CPUS:-0.90}"
+    mem_limit: "${APP_MEM:-512m}"
+    ulimits:
+      nofile:
+        soft: 65535
+        hard: 65535
+    environment:
+      - REDIS_URL=${REDIS_URL:-}
+      - GOMEMLIMIT=${APP_GOMEMLIMIT:-430MiB}
+      - GOGC=${GOGC:-100}
+
   redis:
     image: redis:7-alpine
-    ports: ["6379:6379"]
     environment:
       - REDIS_RAM_SIZE=${REDIS_RAM_SIZE:-256}
     command: >
