@@ -3,6 +3,7 @@ module pay_flow_go
 go 1.25.0
 
 require (
+	github.com/alicebob/miniredis/v2 v2.35.0
 	github.com/redis/go-redis/v9 v9.12.1
 	github.com/rs/zerolog v1.34.0
 	go.opentelemetry.io/otel v1.37.0
@@ -21,6 +22,7 @@ require (
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.27.1 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.19 // indirect
+	github.com/yuin/gopher-lua v1.1.1 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.37.0 // indirect
 	go.opentelemetry.io/otel/metric v1.37.0 // indirect
