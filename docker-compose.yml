@@ -20,7 +20,8 @@ x-app-base: &app-base
 services:
   app:
     <<: *app-base
-    depends_on: [redis, jaeger]
+    # depends_on: [jaeger, redis]
+    depends_on: [jaeger]
     cpus: "${APP_CPUS:-0.90}"
     mem_limit: "${APP_MEM:-512m}"
     ulimits:
@@ -32,19 +33,6 @@ services:
       - GOMEMLIMIT=${APP_GOMEMLIMIT:-430MiB}
       - GOGC=${GOGC:-100}
 
-  redis:
-    image: redis:7-alpine
-    environment:
-      - REDIS_RAM_SIZE=${REDIS_RAM_SIZE:-256}
-    command: >
-      redis-server --appendonly yes
-                   --maxmemory ${REDIS_RAM_SIZE:-256}mb
-                   --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    logging: *log-env
-
   jaeger:
     image: jaegertracing/all-in-one:1.56
     environment:
@@ -54,6 +42,19 @@ services:
       - "4318:4318"
     restart: unless-stopped
     logging: *log-env
+
+  # redis:
+  #   image: redis:7-alpine
+  #   environment:
+  #     - REDIS_RAM_SIZE=${REDIS_RAM_SIZE:-256}
+  #   command: >
+  #     redis-server --appendonly yes
+  #                  --maxmemory ${REDIS_RAM_SIZE:-256}mb
+  #                  --maxmemory-policy allkeys-lru
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+  #   logging: *log-env
 
 volumes:
   redis_data:

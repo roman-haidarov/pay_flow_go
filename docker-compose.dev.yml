@@ -7,20 +7,6 @@ x-logging: &log-env
     max-file: "${LOG_MAX_FILES:-2}"
 
 services:
-  redis:
-    image: redis:7-alpine
-    ports: ["6379:6379"]
-    environment:
-      - REDIS_RAM_SIZE=${REDIS_RAM_SIZE:-256}
-    command: >
-      redis-server --appendonly yes
-                   --maxmemory ${REDIS_RAM_SIZE:-256}mb
-                   --maxmemory-policy allkeys-lru
-    volumes:
-      - redis_data:/data
-    restart: unless-stopped
-    logging: *log-env
-
   jaeger:
     image: jaegertracing/all-in-one:1.56
     environment:
@@ -30,6 +16,20 @@ services:
       - "4318:4318"
     restart: unless-stopped
     logging: *log-env
+
+  # redis:
+  #   image: redis:7-alpine
+  #   ports: ["6379:6379"]
+  #   environment:
+  #     - REDIS_RAM_SIZE=${REDIS_RAM_SIZE:-256}
+  #   command: >
+  #     redis-server --appendonly yes
+  #                  --maxmemory ${REDIS_RAM_SIZE:-256}mb
+  #                  --maxmemory-policy allkeys-lru
+  #   volumes:
+  #     - redis_data:/data
+  #   restart: unless-stopped
+  #   logging: *log-env
 
 volumes:
   redis_data:
