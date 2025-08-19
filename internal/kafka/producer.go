@@ -34,12 +34,25 @@ func NewProducer(cfg *config.Kafka) *Producer {
 func (p *Producer) Close() error { return p.w.Close() }
 
 func (p *Producer) ProduceSMS(ctx context.Context, sms SMS) error {
-	payload, _ := json.Marshal(sms)
-	msg := kafka.Message{
-		Key:   []byte(sms.Phone),
-		Value: payload,
-		Time:  time.Now(),
+	payload, err := json.Marshal(sms)
+	if err != nil {
+		return err
 	}
+
+	msg := kafka.Message{
+		Key:   []byte(sms.UserID.String()),
+		Value: payload,
+		Time:  time.Now().UTC(),
+		Headers: []kafka.Header{
+			{Key: "content-type", Value: []byte("application/json")},
+			{Key: "event-type",   Value: []byte("sms")},
+			{Key: "schema-ver",   Value: []byte("1")},
+		},
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
 	return p.w.WriteMessages(ctx, msg)
 }
 
