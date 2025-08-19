@@ -4,12 +4,15 @@ import (
 	"context"
 	// "pay_flow_go/internal/cache"
 	"pay_flow_go/internal/config"
+	kafkaio "pay_flow_go/internal/kafka"
+
 	"github.com/rs/zerolog/log"
 )
 
 type Server struct {
 	cfg *config.Config
 	// ch  cache.Store
+	prod *kafkaio.Producer
 	// api *api.API
 }
 
@@ -19,9 +22,12 @@ func New(cfg *config.Config) (*Server, error) {
 	// 	return nil, err
 	// }
 
+	prod := kafkaio.NewProducer(&cfg.Kafka)
+
 	return &Server{
 		cfg: cfg,
 		// ch:  rc,
+		prod: prod,
 		// api: api.NewAPI(rc, reviews.NewService(rc)),
 	}, nil
 }
@@ -48,5 +54,12 @@ func (s *Server) Shutdown() {
 	// 		log.Err(err).Msg("redis close failed")
 	// 	}
 	// }
+
+	if s.prod != nil {
+		if err := s.prod.Close(); err != nil {
+			log.Err(err).Msg("kafka close failed")
+		}
+	}
+
 	log.Info().Msg("graceful server shutdown")
 }
