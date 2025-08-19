@@ -34,7 +34,7 @@ type KfkClient struct {
 	BootstrapServers    []string `env:"KAFKA_BOOTSTRAP_SERVERS,required"`
 	ClientID            string   `env:"KAFKA_CLIENT_ID,required"`
 	ProducerTopic       string   `env:"KAFKA_PRODUCER_TOPIC,required"`
-	ConsumerTopic       string   `env:"KAFKA_CONSUMER_TOPICS,required"`
+	ConsumerTopic       string   `env:"KAFKA_CONSUMER_TOPIC,required"`
 	ConsumerGroup       string   `env:"KAFKA_CONSUMER_GROUP,required"`
 	ConsumerStartOffset string   `env:"KAFKA_CONSUMER_START_OFFSET,required"`
 }
@@ -51,13 +51,17 @@ type KfkProducer struct {
 }
 
 type KfkConsumer struct {
-	MinBytes             int  `env:"KAFKA_CONSUMER_MIN_BYTES,required"`
-	MaxBytes             int  `env:"KAFKA_CONSUMER_MAX_BYTES,required"`
-	MaxWaitMs            int  `env:"KAFKA_CONSUMER_MAX_WAIT_MS,required"`
-	SessionTimeoutMs     int  `env:"KAFKA_CONSUMER_SESSION_TIMEOUT_MS,required"`
-	HeartbeatMs          int  `env:"KAFKA_CONSUMER_HEARTBEAT_MS,required"`
-	AutoCommit           bool `env:"KAFKA_CONSUMER_AUTO_COMMIT,required"`
-	AutoCommitIntervalMs int  `env:"KAFKA_CONSUMER_AUTO_COMMIT_INTERVAL_MS,required"`
+	MinBytes             int  	`env:"KAFKA_CONSUMER_MIN_BYTES,required"`
+	MaxBytes             int  	`env:"KAFKA_CONSUMER_MAX_BYTES,required"`
+	MaxWaitMs            int  	`env:"KAFKA_CONSUMER_MAX_WAIT_MS,required"`
+	SessionTimeoutMs     int  	`env:"KAFKA_CONSUMER_SESSION_TIMEOUT_MS,required"`
+	HeartbeatMs          int  	`env:"KAFKA_CONSUMER_HEARTBEAT_MS,required"`
+	AutoCommit           bool 	`env:"KAFKA_CONSUMER_AUTO_COMMIT,required"`
+	AutoCommitIntervalMs int  	`env:"KAFKA_CONSUMER_AUTO_COMMIT_INTERVAL_MS,required"`
+	GroupID							 string `env:"KAFKA_CONSUMER_GROUP,required"`
+	StartOffset					 string `env:"KAFKA_CONSUMER_OFFSET,required"`
+	BatchSize						 int  	`env:"KAFKA_CONSUMER_BATCH,required"`
+	TickMs 							 int  	`env:"KAFKA_CONSUMER_TICKS,required"`
 }
 
 type KfkSecurity struct {
