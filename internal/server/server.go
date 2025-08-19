@@ -12,7 +12,7 @@ import (
 type Server struct {
 	cfg *config.Config
 	// ch  cache.Store
-	kfk *kafkaio.Producer
+	prod *kafkaio.Producer
 	// api *api.API
 }
 
@@ -21,12 +21,13 @@ func New(cfg *config.Config) (*Server, error) {
 	// if err != nil {
 	// 	return nil, err
 	// }
-	kfk := kafkaio.NewProducer(&cfg.Kafka)
+
+	prod := kafkaio.NewProducer(&cfg.Kafka)
 
 	return &Server{
 		cfg: cfg,
 		// ch:  rc,
-		kfk: kfk,
+		prod: prod,
 		// api: api.NewAPI(rc, reviews.NewService(rc)),
 	}, nil
 }
@@ -53,5 +54,12 @@ func (s *Server) Shutdown() {
 	// 		log.Err(err).Msg("redis close failed")
 	// 	}
 	// }
+
+	if s.prod != nil {
+		if err := s.prod.Close(); err != nil {
+			log.Err(err).Msg("kafka close failed")
+		}
+	}
+
 	log.Info().Msg("graceful server shutdown")
 }

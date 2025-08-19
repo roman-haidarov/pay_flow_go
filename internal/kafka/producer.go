@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"pay_flow_go/internal/config"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +24,10 @@ type SMS struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type Producer struct{ w *kafka.Writer }
+type Producer struct{
+	w *kafka.Writer
+	wg sync.WaitGroup
+}
 
 func NewProducer(cfg *config.Kafka) *Producer {
 	d := newDialer(cfg)
@@ -31,9 +35,10 @@ func NewProducer(cfg *config.Kafka) *Producer {
 	return &Producer{w: w}
 }
 
-func (p *Producer) Close() error { return p.w.Close() }
-
 func (p *Producer) ProduceSMS(ctx context.Context, sms SMS) error {
+	p.wg.Add(1)
+	defer p.wg.Done()
+
 	payload, err := json.Marshal(sms)
 	if err != nil {
 		return err
@@ -54,6 +59,12 @@ func (p *Producer) ProduceSMS(ctx context.Context, sms SMS) error {
 	defer cancel()
 
 	return p.w.WriteMessages(ctx, msg)
+}
+
+func (p *Producer) Close() error {
+	p.wg.Wait()
+
+	return p.w.Close()
 }
 
 func newDialer(cfg *config.Kafka) *kafka.Dialer {
