@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"pay_flow_go/internal/config"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 	"github.com/segmentio/kafka-go"
 	"github.com/segmentio/kafka-go/sasl/plain"
 	"github.com/segmentio/kafka-go/sasl/scram"
@@ -24,9 +24,8 @@ type SMS struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
-type Producer struct{
+type Producer struct {
 	w *kafka.Writer
-	wg sync.WaitGroup
 }
 
 func NewProducer(cfg *config.Kafka) *Producer {
@@ -36,9 +35,6 @@ func NewProducer(cfg *config.Kafka) *Producer {
 }
 
 func (p *Producer) ProduceSMS(ctx context.Context, sms SMS) error {
-	p.wg.Add(1)
-	defer p.wg.Done()
-
 	payload, err := json.Marshal(sms)
 	if err != nil {
 		return err
@@ -55,15 +51,11 @@ func (p *Producer) ProduceSMS(ctx context.Context, sms SMS) error {
 		},
 	}
 
-	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
-	defer cancel()
-
 	return p.w.WriteMessages(ctx, msg)
 }
 
 func (p *Producer) Close() error {
-	p.wg.Wait()
-
+	log.Info().Msg("closing kafka producer")
 	return p.w.Close()
 }
 
@@ -80,14 +72,15 @@ func newDialer(cfg *config.Kafka) *kafka.Dialer {
 
 func newWriter(cfg *config.Kafka, d *kafka.Dialer) *kafka.Writer {
 	return &kafka.Writer{
-		Addr:                   kafka.TCP(splitCSV(cfg.Client.BootstrapServers)...),
-		Topic:                  cfg.Client.ProducerTopic,
-		Balancer:               pickBalancer(cfg.Producer.Balancer),
-		RequiredAcks:           pickAcks(cfg.Producer.RequiredAcks),
-		BatchBytes:             batchBytes(cfg.Producer.BatchBytes),
-		BatchTimeout:           time.Duration(cfg.Producer.LingerMs) * time.Millisecond,
-		Compression:            pickCompression(cfg.Producer.Compression),
-		MaxAttempts:            maxInt(cfg.Producer.Retries, 1),
+		Addr:     kafka.TCP(splitCSV(cfg.Client.BootstrapServers)...),
+		Topic:    cfg.Client.ProducerTopic,
+		Balancer: pickBalancer(cfg.Producer.Balancer),
+		RequiredAcks: pickAcks(cfg.Producer.RequiredAcks),
+		BatchSize:    100,
+		BatchTimeout: 10 * time.Millisecond,
+		BatchBytes:   batchBytes(cfg.Producer.BatchBytes),
+		Compression: pickCompression(cfg.Producer.Compression),
+		MaxAttempts: maxInt(cfg.Producer.Retries, 3),
 		AllowAutoTopicCreation: cfg.Producer.AllowAutoTopicCreation,
 		Transport: &kafka.Transport{
 			TLS:  d.TLS,
@@ -101,6 +94,7 @@ func applyTLS(d *kafka.Dialer, sec config.KfkSecurity) {
 		d.TLS = &tls.Config{InsecureSkipVerify: sec.TLSInsecureSkipVerify}
 	}
 }
+
 func applySASL(d *kafka.Dialer, sec config.KfkSecurity) {
 	if !sec.SASLEnable {
 		return
@@ -171,7 +165,7 @@ func batchBytes(v int64) int64 {
 	if v > 0 {
 		return v
 	}
-	return 1 << 20
+	return 1 << 20 // 1 MB
 }
 
 func maxInt(a, b int) int {
